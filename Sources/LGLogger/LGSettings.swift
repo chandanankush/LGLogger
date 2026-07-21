@@ -36,6 +36,7 @@ public enum LGSettings {
     nonisolated(unsafe) private static var isFileLoggingEnabled = false
     nonisolated(unsafe) private static var allowedFileLevels: Set<LGLevel> = Set(LGLevel.allCases)
     nonisolated(unsafe) private static var storedOutputMethod: OutputMethod = .print
+    nonisolated(unsafe) private static var storedUploadURL: URL?
 
     /// Restricts both console and file output to `modules`. A log with no module tag, or a
     /// module not in this list, is suppressed from both destinations.
@@ -75,6 +76,13 @@ public enum LGSettings {
     public static var outputMethod: OutputMethod {
         get { lock.withLock { storedOutputMethod } }
         set { lock.withLock { storedOutputMethod = newValue } }
+    }
+
+    /// The endpoint `LGLogViewerView`'s "Upload Logs" button sends saved logs to. `nil`
+    /// (the default) hides that button entirely — set this to opt in.
+    public static var uploadURL: URL? {
+        get { lock.withLock { storedUploadURL } }
+        set { lock.withLock { storedUploadURL = newValue } }
     }
 
     /// Single-lock snapshot of where a call should go — read once per `LGPrint` call so it

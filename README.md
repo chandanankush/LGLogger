@@ -81,7 +81,7 @@ targets: [
 | `LGOverlayWindow.swift` | The extra, always-on-top `UIWindow` the bubble lives in; implements touch pass-through. |
 | `LGOverlayState.swift` | Shared `ObservableObject` for the bubble's position, drag-clamping, and viewer-presented flag. |
 | `LGBubbleView.swift` | The draggable bubble itself (SwiftUI). |
-| `LGLogViewerView.swift` | The list-and-read-a-log-file screen the bubble opens. |
+| `LGLogViewerView.swift` | The list-and-read-a-log-file screen the bubble opens, with Email/Upload/Clear actions. |
 
 All types are `internal` (package-private) except the ones a consuming app actually needs
 to call: `LGPrint`, `LGLevel`, `LGSettings`, `LGOverlay`, `LGMailUploader`,
@@ -167,8 +167,11 @@ in one shot, rather than re-acquiring the lock per flag.
 
 ## Uploading (`LGMailUploader`, `LGNetworkUploader`)
 
-Both operate on **every file** `LGFileSink.shared.allLogFileURLs()` currently returns —
-i.e. every launch's log file that hasn't been deleted yet, not just the current one.
+The normal way to trigger these is the **"Email Logs" / "Upload Logs" buttons already
+built into `LGLogViewerView`** (see [Floating debug overlay](#floating-debug-overlay-lgoverlay)
+below) — you don't need to call these APIs directly unless you're building your own UI
+around them. Both operate on **every file** `LGFileSink.shared.allLogFileURLs()` currently
+returns — i.e. every launch's log file that hasn't been deleted yet, not just the current one.
 
 ```swift
 // Mail — must run on the main actor, needs a presenting UIViewController.
@@ -210,8 +213,18 @@ LGOverlay.install()   // call once; safe to call multiple times (no-ops after th
 - The bubble is draggable anywhere on screen and is clamped to stay clear of the safe
   area (status bar / Dynamic Island / home indicator) on all four edges — see
   [Limitations](#limitations) for why that clamp exists.
-- Tapping (not dragging) it opens `LGLogViewerView`, a simple list of every saved log
-  file → tap one to read its raw contents.
+- Tapping (not dragging) it opens `LGLogViewerView`, a list of every saved log file →
+  tap one to read its raw contents.
+- The list screen's `⋯` menu has **Email Logs**, **Upload Logs**, and **Clear Logs**
+  (destructive, behind a confirmation dialog). The whole menu only appears once there's
+  at least one saved log file; **Upload Logs** specifically is further hidden unless
+  `LGSettings.uploadURL` has been set (`nil` by default) — the package doesn't hardcode
+  an endpoint, so hosts that never opt in never see a button pointing nowhere.
+  Presenting the mail composer from here uses a small `UIViewControllerRepresentable`
+  helper (`LGViewControllerResolver`) to find the *actual* presenting view controller —
+  since this view can be hosted inside `LGOverlayWindow` rather than the app's own main
+  window, looking up "the key window's root VC" the naive way would find the wrong
+  window and the composer could render behind the overlay.
 - Touch pass-through: `LGOverlayWindow.hitTest` only claims touches within ~40pt of the
   bubble's center (or, while the log viewer is presented, everywhere) — every other touch
   returns `nil`, falling through to the app's own window underneath, so the overlay never
