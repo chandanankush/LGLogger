@@ -1,0 +1,7 @@
+version: 2
+updates:
+  # The package itself has no dependencies; this keeps the CI/CodeQL actions current.
+  - package-ecosystem: github-actions
+    directory: "/"
+    schedule:
+      interval: weekly

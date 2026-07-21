@@ -326,12 +326,51 @@ system and shows up immediately, both in Xcode's console and via `log show`/`log
   bounds. It would take a fresh `didBecomeKeyNotification` (e.g. backgrounding and
   returning) for these to catch up, if they even do at that point.
 
+## Testing
+
+Unit tests live in `Tests/LGLoggerTests/` and cover the logic-bearing, side-effect-light
+parts of the package:
+
+| Test file | What it exercises |
+|---|---|
+| `LGSettingsTests.swift` | The `destinations(forModule:level:)` routing matrix — module filter, per-destination level filters, output method, upload URL. |
+| `LGFileSinkTests.swift` | Lazy file open, newline-terminated appends, and the "give up permanently on open failure" behaviour, via the `LGFileManagerProtocol` seam. |
+| `LGOverlayStateTests.swift` | Bubble-position clamping against scene bounds and safe-area insets. |
+| `LGLevelTests.swift` / `LGUploadErrorTests.swift` / `DateISO8601Tests.swift` | Level bitmask/prefix mapping, error descriptions, log-file timestamp format. |
+| `LGNetworkUploaderTests.swift` | The empty-set guard on the public upload entry point. |
+
+Because the package imports `UIKit`/`SwiftUI`/`MessageUI`, it builds only for an Apple UI
+platform — **`swift test` won't work; run the suite through an iOS simulator**:
+
+```sh
+xcodebuild test \
+  -scheme LGLogger \
+  -destination 'platform=iOS Simulator,name=iPhone 17 Pro'
+```
+
+(Any available iPhone simulator works — pick one from `xcrun simctl list devices available`.)
+
+## Continuous integration & code scanning
+
+`.github/` wires up GitHub-native checks for the public repo:
+
+- **`workflows/ci.yml`** — builds and runs the test suite on a `macos-latest` runner
+  against a simulator it picks dynamically (runner image device names change over time),
+  on every push and PR to `main`.
+- **`workflows/codeql.yml`** — GitHub **code scanning** via CodeQL for Swift (`build-mode:
+  manual`, building for the simulator), on push/PR plus a weekly scheduled re-scan.
+  Findings surface under the repo's **Security → Code scanning** tab.
+- **`dependabot.yml`** — weekly update PRs for the GitHub Actions used above (the package
+  itself has no SPM dependencies to track).
+
 ## Suggested next steps
 
 - Push this repository somewhere reachable and tag a release (e.g. `1.0.0`) so other
   projects can depend on it via `.package(url:...)` instead of a local path.
-- Add a unit test target exercising `LGFileSink` via its existing `LGFileManagerProtocol`/
-  `LGFileHandleFactory` seams (append, rotation across launches, failure handling).
+- Extend `LGNetworkUploader` coverage: it currently reads from the `LGFileSink.shared`
+  singleton, so the POST/delete path can't be unit-tested in isolation — decoupling it
+  from the singleton (inject the file list) would let a `URLProtocol` stub cover success,
+  partial-failure, and delete-on-success behaviour.
 - Split a platform-agnostic core target (`LGPrint`/`LGSettings`/`LGFileSink`/
   `LGNetworkUploader`) out from the iOS-only UI pieces, if non-Apple-UIKit platform
   support is ever needed.
