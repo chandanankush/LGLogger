@@ -1,5 +1,10 @@
 # LGLogger
 
+[![CI](https://github.com/chandanankush/LGLogger/actions/workflows/ci.yml/badge.svg)](https://github.com/chandanankush/LGLogger/actions/workflows/ci.yml)
+[![CodeQL](https://github.com/chandanankush/LGLogger/actions/workflows/codeql.yml/badge.svg)](https://github.com/chandanankush/LGLogger/actions/workflows/codeql.yml)
+![Platform](https://img.shields.io/badge/platform-iOS%2017%2B-blue)
+![Swift](https://img.shields.io/badge/Swift-5.10-orange)
+
 A small, dependency-free logging package: a `print()`-like call site, per-module and
 per-level filtering, optional on-disk persistence, one-tap upload (email or HTTP), and a
 floating in-app debug overlay to view saved logs without a cable or Console.app.
