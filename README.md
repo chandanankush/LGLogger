@@ -55,15 +55,9 @@ in the package itself needs to change for that.
 
 **Via another package's `Package.swift`:**
 ```swift
-// Local, before a remote exists:
 dependencies: [
-    .package(path: "../LGLogger")
+    .package(url: "https://github.com/chandanankush/LGLogger.git", from: "1.0.0")
 ]
-// Remote, once pushed (replace URL and version):
-dependencies: [
-    .package(url: "https://github.com/<you>/LGLogger.git", from: "1.0.0")
-]
-// Either way:
 targets: [
     .target(name: "YourTarget", dependencies: ["LGLogger"])
 ]
