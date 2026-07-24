@@ -34,24 +34,24 @@ below, pointing at this `LGLogger` folder.
 
 ### Adding it to a *different* project
 
-**No remote has been pushed yet** — until this repository has a URL, the only way to
-depend on it is as a **local package**: clone/copy this repo somewhere and reference that
-path. Once it's pushed somewhere reachable (GitHub, a private Git server, etc.), swap to
-the `.package(url:...)` form below and this becomes a normal remote dependency — nothing
-in the package itself needs to change for that.
+The package is published at `https://github.com/chandanankush/LGLogger.git` and tagged
+`1.0.0`, so it's a normal remote Swift Package dependency. (You can still add it as a
+**local** package instead — clone/copy the repo and reference its path — if you're
+hacking on the logger and the consuming app side by side.)
 
-**Via Xcode, as a local package (today):**
+**Via Xcode (an `.xcodeproj` app):**
+1. **File → Add Package Dependencies…**, paste `https://github.com/chandanankush/LGLogger.git`.
+2. Pick a version rule (e.g. "Up to Next Major" from `1.0.0`).
+3. Add the `LGLogger` product to your app target.
+4. `import LGLogger` wherever you need it.
+
+**Via Xcode, as a local package (for side-by-side development):**
 1. Clone this repo somewhere on disk — it doesn't need to be alongside your `.xcodeproj`,
    any path works.
 2. In Xcode: **File → Add Package Dependencies… → Add Local…**, then select this
    `LGLogger` folder.
 3. Add the `LGLogger` product to your app target when prompted.
 4. `import LGLogger` wherever you need it.
-
-**Via Xcode, once a remote exists:**
-1. **File → Add Package Dependencies…**, paste the repo's URL.
-2. Pick a version rule (e.g. "Up to Next Major" from the latest tag).
-3. Add the `LGLogger` product to your app target.
 
 **Via another package's `Package.swift`:**
 ```swift
@@ -291,11 +291,6 @@ system and shows up immediately, both in Xcode's console and via `log show`/`log
 
 ## Limitations
 
-- **No remote pushed yet.** This has its own git repository, but it hasn't been pushed
-  anywhere reachable yet — it's only consumable as a local package for now (see
-  [Integrating this package](#integrating-this-package-into-a-project)). Pushing it
-  somewhere (GitHub, a private server, etc.) and tagging a release is what turns the
-  `.package(url:...)` form from documentation into something that actually works.
 - **iOS/UIKit only.** `LGOverlay*`, `LGBubbleView`, `LGLogViewerView`, and
   `LGMailUploader` all assume `UIWindowScene`/`UIViewController`. `LGPrint`,
   `LGSettings`, `LGFileSink`, and `LGNetworkUploader` have no UIKit dependency and could
@@ -364,8 +359,6 @@ xcodebuild test \
 
 ## Suggested next steps
 
-- Push this repository somewhere reachable and tag a release (e.g. `1.0.0`) so other
-  projects can depend on it via `.package(url:...)` instead of a local path.
 - Extend `LGNetworkUploader` coverage: it currently reads from the `LGFileSink.shared`
   singleton, so the POST/delete path can't be unit-tested in isolation — decoupling it
   from the singleton (inject the file list) would let a `URLProtocol` stub cover success,
